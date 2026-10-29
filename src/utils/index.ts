@@ -43,10 +43,18 @@ export const sanitizeEmail = (email: string): string => {
 
 export const validateEmail = (email: string): boolean => {
     if (!email) return false;
-    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{3})+$/;
-    const sanitizedEmail = email.trim().toLowerCase();
-    const result = sanitizedEmail.match(regex);
-    return !!result?.[0];
+
+    // Local part: word characters and the symbols mail providers allow, in
+    // dot separated chunks (so "first.last" and "name+tag" both work, but
+    // ".." and a leading or trailing dot do not).
+    //
+    // Domain: one or more labels, then a top level domain of at least two
+    // letters. The length is deliberately not fixed, so two letter country
+    // codes (.it, .br, .ca) and longer ones (.info, .online) are all valid.
+    const regex = /^[\w%+-]+(\.[\w%+-]+)*@[\w-]+(\.[\w-]+)*\.[a-z]{2,}$/;
+
+    const sanitizedEmail = sanitizeEmail(email);
+    return regex.test(sanitizedEmail);
 };
 
 export const parseDateFieldFromJSONResponse = (array: [], fieldName: string): any[] => {
